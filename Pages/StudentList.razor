@@ -1,0 +1,84 @@
+﻿@page "/students"
+@using StudentGradingSystem.Services;
+@inject StudentService StudentService;
+@inject IJSRuntime JS;
+
+<h3>📚 Student List</h3>
+
+<div class="input-group mb-3">
+    <input @bind="searchQuery" class="form-control" placeholder="Search by name" />
+    <button class="btn btn-primary" @onclick="SearchStudent">🔍 Search</button>
+    <button class="btn btn-secondary" @onclick="ResetSearch">❌ Reset</button>
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-outline-info" @onclick='() => SortStudents("name")'>🔠 Sort by Name</button>
+    <button class="btn btn-outline-warning" @onclick='() => SortStudents("grade")'>📊 Sort by Grade</button>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th> 
+            <th>Name</th>
+            <th>Grade</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var (student, index) in students.Select((s, i) => (s, i + 1))) 
+        {
+            <tr>
+                <td>@index</td>
+                <td>@student.Name</td>
+                <td>@student.Grade</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => ConfirmRemoveStudent(student.Name)">❌ Remove</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p><NavLink class="btn btn-secondary" href="/">🏠 Back to Home</NavLink></p>
+
+@code {
+    private List<Student> students = new();
+    private string searchQuery = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        students = StudentService.GetStudentsSorted("name"); 
+    }
+
+    private void SortStudents(string sortBy)
+    {
+        students = StudentService.GetStudentsSorted(sortBy);
+    }
+
+    private void SearchStudent()
+    {
+        students = StudentService.SearchStudents(searchQuery);
+    }
+
+    private void ResetSearch()
+    {
+        searchQuery = string.Empty;
+        students = StudentService.GetStudentsSorted("name");
+    }
+
+    private async void ConfirmRemoveStudent(string name)
+    {
+        bool confirm = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to remove {name}?");
+        if (confirm)
+        {
+            RemoveStudent(name);
+        }
+    }
+
+    private void RemoveStudent(string name)
+    {
+        StudentService.RemoveStudent(name);
+        students = StudentService.GetStudentsSorted("name"); 
+    }
+}

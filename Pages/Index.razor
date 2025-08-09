@@ -1,0 +1,112 @@
+﻿@page "/"
+@using StudentGradingSystem.Services;
+@inject StudentService StudentService;
+
+<div class="container mt-4">
+    <h2 class="text-center text-primary">🎓 Student Grading System</h2>
+
+    <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+        <h4>🔍 Search Student</h4>
+        <div class="input-group">
+            <input @bind="searchQuery" class="form-control" placeholder="Search by name" />
+            <button @onclick="SearchStudent" class="btn btn-primary">Search</button>
+            <button @onclick="ResetSearch" class="btn btn-secondary">Reset</button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+        <h4>🔽 Sort Students</h4>
+        <button @onclick='() => SortStudents("name")' class="btn btn-outline-info">🔠 Sort by Name</button>
+        <button @onclick='() => SortStudents("grade")' class="btn btn-outline-warning">📊 Sort by Grade</button>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+        <h4>📋 Student List</h4>
+        <table class="table table-striped table-hover text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var (student, index) in students.Select((s, i) => (s, i + 1)))
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td>@student.Name</td>
+                        <td>@student.Grade</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-4 bg-light rounded">
+                <h4>📊 Statistics</h4>
+                <p><b>Average Grade:</b> <span class="text-success">@StudentService.GetAverageGrade()</span></p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 mb-4 bg-light rounded">
+                <h4>🏆 Top Students (Grade > 80)</h4>
+                <ul>
+                    @foreach (var student in StudentService.GetTopStudents(80))
+                    {
+                        <li>@student.Name</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-4 bg-white rounded">
+        <h4>➕ Add New Student</h4>
+        <div class="input-group">
+            <input @bind="newStudentName" class="form-control" placeholder="Name" />
+            <input @bind="newStudentGrade" type="number" class="form-control" placeholder="Grade" />
+            <button @onclick="AddStudent" class="btn btn-success">➕ Add</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string newStudentName = string.Empty;
+    private int newStudentGrade = 0;
+    private string searchQuery = string.Empty;
+    private List<Student> students = new();
+
+    protected override void OnInitialized()
+    {
+        students = StudentService.GetStudentsSorted("name");
+    }
+
+    private void SortStudents(string sortBy)
+    {
+        students = StudentService.GetStudentsSorted(sortBy);
+    }
+
+    private void SearchStudent()
+    {
+        students = StudentService.SearchStudents(searchQuery);
+    }
+
+    private void ResetSearch()
+    {
+        searchQuery = string.Empty;
+        students = StudentService.GetStudentsSorted("name");
+    }
+
+    private void AddStudent()
+    {
+        if (!string.IsNullOrEmpty(newStudentName) && newStudentGrade > 0)
+        {
+            StudentService.AddStudent(newStudentName, newStudentGrade);
+            newStudentName = "";
+            newStudentGrade = 0;
+        }
+    }
+}

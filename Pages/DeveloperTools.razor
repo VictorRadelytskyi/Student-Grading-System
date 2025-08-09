@@ -1,0 +1,28 @@
+﻿@page "/developer-tools"
+@using StudentGradingSystem.Services;
+@inject StudentService StudentService
+
+<h3>Developer Tools</h3>
+
+<button @onclick="ShowStudentProperties">Show Student Properties</button>
+
+<ul>
+    @foreach (var prop in studentProperties)
+    {
+        <li>@prop</li>
+    }
+</ul>
+
+<p><NavLink href="/">⬅ Back to Home</NavLink></p>
+
+@code {
+    private List<string> studentProperties = new();
+
+    private void ShowStudentProperties()
+    {
+        studentProperties = typeof(Student)
+            .GetProperties()
+            .Select(p => p.Name)
+            .ToList();
+    }
+}

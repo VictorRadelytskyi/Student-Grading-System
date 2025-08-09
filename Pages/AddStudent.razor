@@ -1,0 +1,35 @@
+﻿@page "/add-student"
+@using StudentGradingSystem.Services;
+@inject StudentService StudentService
+
+<h3>Add a New Student</h3>
+
+<input @bind="newStudentName" placeholder="Name" />
+<input @bind="newStudentGrade" type="number" placeholder="Grade" />
+<button @onclick="AddNewStudent">Add Student</button>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color: red;">@errorMessage</p>
+}
+
+<p><NavLink href="/">⬅ Back to Home</NavLink></p>
+
+@code {
+    private string newStudentName = string.Empty;
+    private int newStudentGrade = 0;
+    private string errorMessage = "";
+
+    private void AddNewStudent()
+    {
+        bool success = StudentService.AddStudent(newStudentName, newStudentGrade);
+        if (!success)
+        {
+            errorMessage = "❌ Invalid name or grade (must be 0-100).";
+        }
+        else
+        {
+            errorMessage = "";
+        }
+    }
+}
